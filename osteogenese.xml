@@ -1,0 +1,138 @@
+<CompuCell3D Revision="20170130" Version="3.7.5">
+
+  <!-- Definicoes gerais do algoritmo monte carlo -->
+  <Potts>
+    <Dimensions x="250" y="140" z="140"/>
+    <Steps>15000</Steps>
+    <Temperature>10.0</Temperature>
+    <NeighborOrder>1</NeighborOrder>
+  </Potts>
+
+  <!-- Declaracao dos tipos celulares envolvidos com seus ID -->
+  <Plugin Name="CellType">
+    <CellType TypeId="0" TypeName="Medium"/>
+    <CellType TypeId="1" TypeName="Mesenchymal"/>
+    <CellType TypeId="2" TypeName="Osteoblast"/>
+    <CellType TypeId="3" TypeName="Osteocyte"/>
+    <CellType Freeze="" TypeId="4" TypeName="Matrix"/>
+  </Plugin>
+
+  <!-- Construcao do ambiente de simulacao inicial -->
+  <Steppable Type="BlobInitializer">
+    <Region> 
+    <Center x="65" y="70" z="70"/>
+    <Radius>50 </Radius> 
+    <Gap>0</Gap> 
+    <Width>10</Width> 
+    <Types>Mesenchymal</Types>
+  </Region>
+
+  <Region> 
+    <Center x="170" y="70" z="70"/> 
+    <Radius>50</Radius> 
+    <Gap>0</Gap> 
+    <Width>10</Width> 
+    <Types>Mesenchymal</Types> 
+  </Region> 
+
+  </Steppable>
+
+  <!-- Funcionalidades adicionadas na simulacao - site oficial indicado contem manual -->
+  <Plugin Name="Volume"/>
+
+  <Plugin Name="CenterOfMass"/>
+
+  <Plugin Name="PixelTracker"/>
+
+  <!-- parametros envolvendo alongamento celular -->
+  <Plugin Name="LengthConstraint">
+    <LengthEnergyParameters CellType="Mesenchymal" TargetLength="100" MinorTargetLength="3" LambdaLength="50" />
+  </Plugin>
+
+  <Plugin Name="ConnectivityGlobal"/>
+
+  <!-- Especificacao de energias de adesao --> 
+  <Plugin Name="Contact">        
+    <Energy Type1="Medium" Type2="Medium">10.0</Energy> 
+    <Energy Type1="Medium" Type2="Mesenchymal">14.0</Energy>
+    <Energy Type1="Medium" Type2="Osteoblast">12.0</Energy> 
+    <Energy Type1="Medium" Type2="Matrix">3.0</Energy>      
+
+    <Energy Type1="Mesenchymal" Type2="Mesenchymal">7.0</Energy>   
+    <Energy Type1="Mesenchymal" Type2="Osteoblast">8.0</Energy>    
+    <Energy Type1="Mesenchymal" Type2="Matrix">20.0</Energy>       
+
+    <Energy Type1="Osteoblast" Type2="Osteoblast">6.0</Energy>     
+    <Energy Type1="Osteoblast" Type2="Matrix">8.0</Energy>        
+
+    <Energy Type1="Osteocyte" Type2="Medium">10.0</Energy>
+    <Energy Type1="Osteocyte" Type2="Mesenchymal">10.0</Energy>
+    <Energy Type1="Osteocyte" Type2="Osteoblast">10.0</Energy>
+    <Energy Type1="Osteocyte" Type2="Matrix">10.0</Energy>
+    <Energy Type1="Osteocyte" Type2="Osteocyte">8.0</Energy>
+
+    <Energy Type1="Matrix" Type2="Matrix">20.0</Energy> 
+
+    <NeighborOrder>2</NeighborOrder>
+  </Plugin>
+
+  <!-- Parametros referentes aos campos quimicos - coeficientes e constantes do solver -->
+
+  <Plugin Name="Secretion">
+    <Field Name="RUNX2">
+    <ConstantConcentration Type="Medium">15</ConstantConcentration>
+    </Field>
+  </Plugin>
+
+
+  <Steppable Type="DiffusionSolverFE">
+
+    <DiffusionField Name="RUNX2">
+      <DiffusionData>
+        <FieldName>RUNX2</FieldName>
+        <GlobalDiffusionConstant>0.35</GlobalDiffusionConstant>
+        <GlobalDecayConstant>0.001</GlobalDecayConstant>
+        <DecayCoefficient CellType="Osteocyte">0.01</DecayCoefficient>
+        <DecayCoefficient CellType="Matrix">0.1</DecayCoefficient>
+        <DiffusionCoefficient CellType="Mesenchymal">0.7</DiffusionCoefficient>
+      </DiffusionData>
+    </DiffusionField>
+
+
+    <DiffusionField Name="PhosphAlka">
+      <DiffusionData>
+        <FieldName>PhosphAlka</FieldName>
+        <GlobalDiffusionConstant>0.5</GlobalDiffusionConstant>
+        <GlobalDecayConstant>0.001</GlobalDecayConstant>
+        <DiffusionCoefficient CellType="Medium">0.2</DiffusionCoefficient>
+        <DecayCoefficient CellType="Medium">0.002</DecayCoefficient>
+        <DecayCoefficient CellType="Matrix">0.008</DecayCoefficient>
+        <DoNotDiffuseTo>Matrix</DoNotDiffuseTo>
+      </DiffusionData>
+
+      <SecretionData>
+        <Secretion Type="Osteoblast">0.04</Secretion>
+        <Secretion Type="Osteocyte">0.02</Secretion>
+      </SecretionData>
+    </DiffusionField>
+
+
+    <DiffusionField Name="Osteocalcin">
+      <DiffusionData>
+        <FieldName>Osteocalcin</FieldName>
+        <GlobalDiffusionConstant>0.4</GlobalDiffusionConstant>
+        <GlobalDecayConstant>0.001</GlobalDecayConstant>
+        <DiffusionCoefficient CellType="Medium">0.3</DiffusionCoefficient>
+        <DecayCoefficient CellType="Matrix">0.001</DecayCoefficient>
+        <DoNotDiffuseTo>Matrix</DoNotDiffuseTo>
+      </DiffusionData>
+
+      <SecretionData>
+        <Secretion Type="Osteoblast">0.016</Secretion>
+        <Secretion Type="Osteocyte">0.04</Secretion>
+      </SecretionData>
+    </DiffusionField>
+
+  </Steppable>
+
+</CompuCell3D>
